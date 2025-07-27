@@ -1,0 +1,71 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Reviews collection rules
+    match /reviews/{reviewId} {
+      // Allow read access to all reviews
+      allow read: if true;
+      
+      // Allow authenticated users to create reviews
+      allow create: if request.auth != null 
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.userName is string
+        && request.resource.data.rating is number
+        && request.resource.data.rating >= 1
+        && request.resource.data.rating <= 5
+        && request.resource.data.review is string
+        && request.resource.data.review.size() > 0
+        && request.resource.data.cafeId is string
+        && request.resource.data.cafeName is string;
+      
+      // Allow users to update their own reviews
+      allow update: if request.auth != null 
+        && resource.data.userId == request.auth.uid
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.rating is number
+        && request.resource.data.rating >= 1
+        && request.resource.data.rating <= 5
+        && request.resource.data.review is string
+        && request.resource.data.review.size() > 0;
+      
+      // Allow users to delete their own reviews
+      allow delete: if request.auth != null 
+        && resource.data.userId == request.auth.uid;
+    }
+
+    // Favorites collection rules
+    match /favorites/{favoriteId} {
+      // Allow users to read their own favorites
+      allow read: if request.auth != null 
+        && resource.data.userId == request.auth.uid;
+      
+      // Allow authenticated users to create favorites
+      allow create: if request.auth != null 
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.cafeId is string
+        && request.resource.data.cafeName is string
+        && request.resource.data.cafeAddress is string;
+      
+      // Allow users to delete their own favorites
+      allow delete: if request.auth != null 
+        && resource.data.userId == request.auth.uid;
+    }
+
+    // Users collection rules
+    match /users/{userId} {
+      // Allow users to read their own profile
+      allow read: if request.auth != null 
+        && request.auth.uid == userId;
+      
+      // Allow users to create their own profile
+      allow create: if request.auth != null 
+        && request.auth.uid == userId
+        && request.resource.data.uid == userId;
+      
+      // Allow users to update their own profile
+      allow update: if request.auth != null 
+        && request.auth.uid == userId
+        && request.resource.data.uid == userId;
+    }
+  }
+} 
