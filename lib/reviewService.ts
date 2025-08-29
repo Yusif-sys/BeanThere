@@ -51,6 +51,7 @@ export const addReview = async (review: Omit<Review, 'id' | 'createdAt'>): Promi
       ...review,
       createdAt: serverTimestamp()
     });
+
     return docRef.id;
   } catch (error) {
     console.error('Error adding review:', error);

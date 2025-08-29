@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuthContext } from '../../contexts/AuthContext';
+import { useFavorites } from '../../contexts/FavoritesContext';
 import { getAllReviews } from '../../lib/reviewService';
 
 interface Review {
@@ -15,6 +16,7 @@ interface Review {
 
 export default function ReviewList() {
   const { user } = useAuthContext();
+  const { isFavorite, addFavorite, removeFavorite, favorites } = useFavorites();
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -49,6 +51,26 @@ export default function ReviewList() {
 
     loadUserReviews();
   }, [user]);
+
+  const toggleFavorite = async (review: Review) => {
+    if (!user) return;
+
+    try {
+      if (isFavorite(review.cafeId)) {
+        // Find the favorite to remove
+        const existingFavorite = favorites.find(fav => fav.cafeId === review.cafeId);
+        if (existingFavorite?.id) {
+          await removeFavorite(existingFavorite.id);
+        }
+      } else {
+        // Add to favorites
+        await addFavorite(review.cafeId, review.cafeName);
+      }
+    } catch (error) {
+      console.error('Error toggling favorite:', error);
+      alert('Failed to update favorite');
+    }
+  };
 
   const formatDate = (dateInput: any) => {
     let date: Date;
@@ -131,7 +153,18 @@ export default function ReviewList() {
             <div key={review.id} className="border border-gray-200 rounded-lg p-4">
               <div className="flex items-start justify-between mb-2">
                 <div className="flex-1">
-                  <h4 className="font-medium text-gray-900">{review.cafeName}</h4>
+                  <div className="flex items-center gap-2">
+                    <h4 className="font-medium text-gray-900">{review.cafeName}</h4>
+                    <button
+                      onClick={() => toggleFavorite(review)}
+                      className={`text-lg transition-colors hover:scale-110 ${
+                        isFavorite(review.cafeId) ? 'text-red-500' : 'text-gray-300 hover:text-red-400'
+                      }`}
+                      title={isFavorite(review.cafeId) ? 'Remove from favorites' : 'Add to favorites'}
+                    >
+                      {isFavorite(review.cafeId) ? '❤️' : '🤍'}
+                    </button>
+                  </div>
                   <div className="flex items-center gap-2 mt-1">
                     {renderStars(review.rating)}
                     <span className="text-sm text-gray-500">

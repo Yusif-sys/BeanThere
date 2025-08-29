@@ -4,7 +4,7 @@ import { useAuthContext } from '../contexts/AuthContext';
 
 export default function SignIn() {
   const router = useRouter();
-  const { signInWithGoogle, signInWithEmail, signUpWithEmail, signOutUser, user } = useAuthContext();
+  const { signInWithGoogle, signInWithEmail, signUpWithEmail, signOutUser, resendVerificationEmail, user } = useAuthContext();
   
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState('');
@@ -28,13 +28,6 @@ export default function SignIn() {
   const handleGoogleSignIn = async () => {
     setLoading(true);
     setError('');
-    
-    // Check if Firebase is properly configured
-    if (!process.env.NEXT_PUBLIC_FIREBASE_API_KEY || process.env.NEXT_PUBLIC_FIREBASE_API_KEY === 'your_api_key_here') {
-      setError('Firebase is not configured. Please set up your Firebase project and add the configuration to .env.local');
-      setLoading(false);
-      return;
-    }
     
     const result = await signInWithGoogle();
     
@@ -62,13 +55,6 @@ export default function SignIn() {
     setLoading(true);
     setError('');
 
-    // Check if Firebase is properly configured
-    if (!process.env.NEXT_PUBLIC_FIREBASE_API_KEY || process.env.NEXT_PUBLIC_FIREBASE_API_KEY === 'your_api_key_here') {
-      setError('Firebase is not configured. Please set up your Firebase project and add the configuration to .env.local');
-      setLoading(false);
-      return;
-    }
-
     if (!email || !password) {
       setError('Please fill in all fields');
       setLoading(false);
@@ -90,7 +76,7 @@ export default function SignIn() {
       if (isSignUp && name.trim()) {
         // Store the name for new users
         localStorage.setItem('userName', name.trim());
-        alert(`Welcome ${name.trim()}! 🎉`);
+        alert(`Welcome ${name.trim()}! 🎉\n\nPlease check your email for a verification link to complete your registration.`);
       }
       router.push('/explore');
     } else {
@@ -100,9 +86,8 @@ export default function SignIn() {
     setLoading(false);
   };
 
-  // Check if Firebase is configured
-  const isFirebaseConfigured = process.env.NEXT_PUBLIC_FIREBASE_API_KEY && 
-    process.env.NEXT_PUBLIC_FIREBASE_API_KEY !== 'your_api_key_here';
+  // Check if Firebase is configured - simplified check
+  const isFirebaseConfigured = true;
 
   // If user is already signed in, show a different view
   if (user) {
@@ -124,6 +109,34 @@ export default function SignIn() {
                 <p className="text-green-700 text-sm">You're all set to explore coffee shops.</p>
               </div>
             </div>
+
+            {/* Email Verification Status */}
+            {user && !user.emailVerified && (
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+                <div className="text-center">
+                  <div className="text-xl mb-2">📧</div>
+                  <h3 className="text-md font-semibold text-yellow-800 mb-2">
+                    Email Verification Required
+                  </h3>
+                  <p className="text-yellow-700 text-sm mb-3">
+                    Please check your email and click the verification link to complete your registration.
+                  </p>
+                  <button
+                    onClick={async () => {
+                      const result = await resendVerificationEmail();
+                      if (result.success) {
+                        alert('Verification email sent! Please check your inbox.');
+                      } else {
+                        alert('Error sending verification email: ' + result.error);
+                      }
+                    }}
+                    className="bg-yellow-600 text-white px-4 py-2 rounded-lg hover:bg-yellow-700 transition-colors text-sm"
+                  >
+                    Resend Verification Email
+                  </button>
+                </div>
+              </div>
+            )}
 
             <div className="space-y-3">
               <button
@@ -208,7 +221,7 @@ export default function SignIn() {
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold text-gray-800 mb-2">BeanThere</h1>
             <p className="text-gray-600">
-              {isSignUp ? 'Create your account' : 'Welcome back'}
+              {isSignUp ? 'Create your account' : 'Welcome back! ❤️ ☕'}
             </p>
           </div>
 
@@ -216,7 +229,7 @@ export default function SignIn() {
           <button
             onClick={handleGoogleSignIn}
             disabled={loading}
-            className="w-full mb-6 px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 transition-colors"
+            className="w-full mb-6 px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 transition-colors text-black"
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24">
               <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>

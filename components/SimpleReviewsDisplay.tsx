@@ -25,6 +25,8 @@ export default function SimpleReviewsDisplay({ cafeId, cafeName }: SimpleReviews
       
       const cafeRating = await getCafeRating(cafeId);
       
+
+      
       setReviews(cafeRating.reviews);
       setTotalReviews(cafeRating.totalReviews);
       setAverageRating(cafeRating.averageRating);
@@ -111,21 +113,23 @@ export default function SimpleReviewsDisplay({ cafeId, cafeName }: SimpleReviews
             )}
           </div>
           
-          {/* Review Button */}
-          <button
-            onClick={() => setShowReviewModal(true)}
-            className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors text-sm font-medium"
-          >
-            {userReview ? 'Edit Review' : 'Write Review'}
-          </button>
+          {/* Review Button - Only show if user is logged in */}
+          {user ? (
+            <button
+              onClick={() => setShowReviewModal(true)}
+              className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors text-sm font-medium"
+            >
+              {userReview ? 'Edit Review' : 'Write Review'}
+            </button>
+          ) : (
+            <p className="text-sm text-black">
+              Sign in to write a review
+            </p>
+          )}
         </div>
-        
-        {!user && (
-          <p className="text-sm text-black">
-            Sign in to write a review
-          </p>
-        )}
       </div>
+
+
 
       {/* Reviews List */}
       {loading ? (
@@ -157,6 +161,8 @@ export default function SimpleReviewsDisplay({ cafeId, cafeName }: SimpleReviews
               <p className="text-black text-sm leading-relaxed">
                 {review.review}
               </p>
+              
+
               
               {user && review.userId === user.uid && (
                 <div className="mt-3 pt-3 border-t border-gray-100">

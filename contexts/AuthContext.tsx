@@ -9,6 +9,7 @@ interface AuthContextType {
   signInWithEmail: (email: string, password: string) => Promise<{ success: boolean; user?: User; error?: string }>;
   signUpWithEmail: (email: string, password: string) => Promise<{ success: boolean; user?: User; error?: string }>;
   signOutUser: () => Promise<{ success: boolean; error?: string }>;
+  resendVerificationEmail: () => Promise<{ success: boolean; error?: string }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);

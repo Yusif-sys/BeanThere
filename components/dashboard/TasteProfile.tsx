@@ -19,6 +19,7 @@ interface TasteStats {
   favoriteTags: { tag: string; count: number }[];
   ratingDistribution: { rating: number; count: number }[];
   recentActivity: string;
+  todayReviews: Review[];
 }
 
 export default function TasteProfile() {
@@ -26,6 +27,7 @@ export default function TasteProfile() {
   const [stats, setStats] = useState<TasteStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [showTodayReviews, setShowTodayReviews] = useState(false);
 
   useEffect(() => {
     const analyzeTasteProfile = async () => {
@@ -45,7 +47,8 @@ export default function TasteProfile() {
             averageRating: 0,
             favoriteTags: [],
             ratingDistribution: [],
-            recentActivity: 'No reviews yet'
+            recentActivity: 'No reviews yet',
+            todayReviews: []
           });
           return;
         }
@@ -59,6 +62,13 @@ export default function TasteProfile() {
           rating,
           count: userReviews.filter(review => review.rating === rating).length
         }));
+
+        // Get today's reviews
+        const todayReviews = userReviews.filter(review => {
+          const reviewDate = review.createdAt instanceof Date ? review.createdAt : new Date(review.createdAt);
+          const today = new Date();
+          return reviewDate.toDateString() === today.toDateString();
+        });
 
         // Analyze recent activity
         const sortedReviews = userReviews.sort((a, b) => {
@@ -100,7 +110,8 @@ export default function TasteProfile() {
           averageRating: Math.round(averageRating * 10) / 10,
           favoriteTags,
           ratingDistribution,
-          recentActivity
+          recentActivity,
+          todayReviews
         });
 
       } catch (error) {
@@ -129,6 +140,26 @@ export default function TasteProfile() {
         ))}
       </div>
     );
+  };
+
+  const formatTime = (dateInput: any) => {
+    let date: Date;
+    
+    if (dateInput instanceof Date) {
+      date = dateInput;
+    } else if (dateInput?.toDate) {
+      date = dateInput.toDate();
+    } else if (typeof dateInput === 'string') {
+      date = new Date(dateInput);
+    } else {
+      date = new Date();
+    }
+    
+    return date.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    });
   };
 
   if (loading) {
@@ -241,10 +272,49 @@ export default function TasteProfile() {
             </div>
           )}
 
-          {/* Recent Activity */}
-          <div className="text-center pt-4 border-t border-gray-200">
-            <p className="text-sm text-gray-600">{stats.recentActivity}</p>
-          </div>
+          {/* Reviewed Today Section */}
+          {stats.todayReviews.length > 0 && (
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <h4 className="font-medium text-gray-900">Reviewed Today</h4>
+                <button
+                  onClick={() => setShowTodayReviews(!showTodayReviews)}
+                  className="text-amber-600 hover:text-amber-700 text-sm font-medium"
+                >
+                  {showTodayReviews ? 'Hide' : `Show (${stats.todayReviews.length})`}
+                </button>
+              </div>
+              
+              {showTodayReviews && (
+                <div className="space-y-3">
+                  {stats.todayReviews.map((review) => (
+                    <div key={review.id} className="border border-gray-200 rounded-lg p-3 bg-gray-50">
+                      <div className="flex items-start justify-between mb-2">
+                        <div className="flex-1">
+                          <h5 className="font-medium text-gray-900 text-sm">{review.cafeName}</h5>
+                          <div className="flex items-center gap-2 mt-1">
+                            {renderStars(review.rating)}
+                            <span className="text-xs text-gray-500">
+                              {review.rating} stars
+                            </span>
+                          </div>
+                        </div>
+                        <span className="text-xs text-gray-500">
+                          {formatTime(review.createdAt)}
+                        </span>
+                      </div>
+                      
+                      <p className="text-gray-700 text-xs leading-relaxed">
+                        {review.review}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Recent Activity - REMOVED */}
         </div>
       )}
     </div>

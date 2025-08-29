@@ -1,81 +1,7 @@
-import { useState, useEffect } from 'react';
-import { useAuthContext } from '../../contexts/AuthContext';
-import { collection, query, where, getDocs, doc, deleteDoc, addDoc, serverTimestamp } from 'firebase/firestore';
-import { firestore } from '../../lib/firebase';
-
-interface FavoriteCafe {
-  id?: string;
-  userId: string;
-  cafeId: string;
-  cafeName: string;
-  cafeAddress: string;
-  addedAt: any;
-}
+import { useFavorites } from '../../contexts/FavoritesContext';
 
 export default function FavoriteCafes() {
-  const { user } = useAuthContext();
-  const [favorites, setFavorites] = useState<FavoriteCafe[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-
-  useEffect(() => {
-    const loadFavorites = async () => {
-      if (!user) return;
-
-      try {
-        setLoading(true);
-        setError('');
-
-        const q = query(
-          collection(firestore, 'favorites'),
-          where('userId', '==', user.uid)
-        );
-        
-        const querySnapshot = await getDocs(q);
-        const userFavorites: FavoriteCafe[] = [];
-        
-        querySnapshot.forEach((doc) => {
-          const data = doc.data();
-          userFavorites.push({
-            id: doc.id,
-            userId: data.userId,
-            cafeId: data.cafeId,
-            cafeName: data.cafeName,
-            cafeAddress: data.cafeAddress,
-            addedAt: data.addedAt?.toDate?.() || data.addedAt || new Date()
-          });
-        });
-
-        // Sort by added date (newest first)
-        userFavorites.sort((a, b) => {
-          const dateA = a.addedAt instanceof Date ? a.addedAt : new Date(a.addedAt);
-          const dateB = b.addedAt instanceof Date ? b.addedAt : new Date(b.addedAt);
-          return dateB.getTime() - dateA.getTime();
-        });
-
-        setFavorites(userFavorites);
-      } catch (error) {
-        console.error('Error loading favorites:', error);
-        setError('Failed to load your favorites');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadFavorites();
-  }, [user]);
-
-  const removeFavorite = async (favoriteId: string) => {
-    if (!user) return;
-
-    try {
-      await deleteDoc(doc(firestore, 'favorites', favoriteId));
-      setFavorites(prev => prev.filter(fav => fav.id !== favoriteId));
-    } catch (error) {
-      console.error('Error removing favorite:', error);
-      alert('Failed to remove favorite');
-    }
-  };
+  const { favorites, loading, error, removeFavorite } = useFavorites();
 
   const formatDate = (dateInput: any) => {
     let date: Date;
@@ -95,6 +21,15 @@ export default function FavoriteCafes() {
       month: 'short',
       day: 'numeric'
     });
+  };
+
+  const handleRemoveFavorite = async (favoriteId: string) => {
+    try {
+      await removeFavorite(favoriteId);
+    } catch (error) {
+      console.error('Error removing favorite:', error);
+      alert('Failed to remove favorite');
+    }
   };
 
   if (loading) {
@@ -148,7 +83,7 @@ export default function FavoriteCafes() {
                   </p>
                 </div>
                 <button
-                  onClick={() => favorite.id && removeFavorite(favorite.id)}
+                  onClick={() => favorite.id && handleRemoveFavorite(favorite.id)}
                   className="ml-4 text-red-500 hover:text-red-700 transition-colors"
                   title="Remove from favorites"
                 >

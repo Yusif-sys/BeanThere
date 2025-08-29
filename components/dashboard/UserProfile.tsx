@@ -204,23 +204,6 @@ export default function UserProfile() {
           Click to upload a new profile picture (max 5MB)
         </p>
       </div>
-
-      <div className="border-t border-gray-200 pt-4">
-        <button
-          onClick={handleSignOut}
-          disabled={isSigningOut}
-          className="w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors font-medium"
-        >
-          {isSigningOut ? (
-            <div className="flex items-center justify-center space-x-2">
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-              <span>Signing out...</span>
-            </div>
-          ) : (
-            'Sign Out'
-          )}
-        </button>
-      </div>
     </div>
   );
 } 

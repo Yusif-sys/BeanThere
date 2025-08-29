@@ -8,6 +8,7 @@ import GoogleMap from '../components/GoogleMap';
 import PlacesSearch from '../components/PlacesSearch';
 import StarRating from './StarRating';
 import SimpleReviewsDisplay from '../components/SimpleReviewsDisplay';
+import BuyMeACoffee from '../components/BuyMeACoffee';
 
 export default function HomePage() {
   const { user, signOutUser } = useAuthContext();
@@ -268,6 +269,10 @@ export default function HomePage() {
               <Link href="/about" className="text-indigo-600 hover:text-indigo-800 transition-colors text-sm font-medium">
                 About
               </Link>
+              <Link href="/support" className="text-green-600 hover:text-green-800 transition-colors text-sm font-medium">
+                Buy Me a Coffee
+              </Link>
+              <BuyMeACoffee username="yusifim" variant="button" className="text-sm" />
               {user ? (
                 <div className="flex items-center space-x-4">
                   <div className="text-green-600 text-sm font-medium">

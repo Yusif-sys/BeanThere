@@ -169,6 +169,8 @@ export default function SimpleReviewModal({
             </p>
           </div>
 
+
+
           {/* Error Message */}
           {error && (
             <div className="p-3 bg-red-100 border border-red-300 rounded-lg text-red-700 text-sm">
